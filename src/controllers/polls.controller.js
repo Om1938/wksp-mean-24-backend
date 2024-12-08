@@ -61,17 +61,36 @@ export const vote = async (req, res) => {
 
   await poll.save();
 
-  res.status(200).json(poll);
+  res.status(200).json({ message: "Voted successfully", data: poll });
 };
 
 export const getPoll = async (req, res) => {
   const { pollId } = req.params;
 
-  const poll = await Poll.findById(pollId);
+  const poll = await Poll.findById(pollId)
+    .populate("createdBy", "username email")
+    .populate("votes.user", "username email");
 
   if (!poll) {
     return res.status(404).json({ message: "Poll not found" });
   }
 
-  res.status(200).json(poll);
+  const voteWithCounts = poll.options.map((option) => {
+    const count = poll.votes.filter(
+      (vote) => vote.optionId.toString() === option._id.toString()
+    ).length;
+
+    return {
+      ...option.toObject(),
+      voteCount: count,
+    };
+  });
+
+  res.status(200).json({
+    message: "Poll found",
+    data: {
+      ...poll.toObject(),
+      options: voteWithCounts,
+    },
+  });
 };
