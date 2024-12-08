@@ -5,6 +5,10 @@ export const register = async (req, res) => {
   // Destructure the request body
   const { username, email, password } = req.body;
 
+  if (!username || !email || !password) {
+    return res.status(400).json("All input is required");
+  }
+
   try {
     // Check if user is already existing with us.
     const existinguser = await User.findOne({
@@ -36,6 +40,9 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json("All input is required");
+  }
 
   const user = await User.findOne({
     email,
